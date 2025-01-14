@@ -3,13 +3,20 @@ package com.gtnewhorizon.structurelib.alignment.constructable;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.util.Vec3Impl;
+import org.apache.commons.lang3.tuple.Pair;
 
-public interface IDeconstructable {
+public interface IDeconstructable<T> {
     /**
      *
-     * @return the active structure definition in use
+     * @return The structure definition of the multiblock
      */
-    IStructureDefinition<?> getActiveStructure();
+    IStructureDefinition<T> getStructureDefinition();
+
+    /**
+     *
+     * @return an array of active pieces and the corresponding offset of those pieces
+     */
+    Pair<String, Vec3Impl>[] getActivePieces();
 
     /**
      *
@@ -19,7 +26,7 @@ public interface IDeconstructable {
 
     /**
      *
-     * @return the structure offset (A, B, C) used to calculate the position to start scanning at
+     * @return the parameterized class
      */
-    Vec3Impl getStructureOffset();
+    Class<T> getType();
 }
