@@ -1368,7 +1368,7 @@ public class StructureUtility {
 			positionOffset[2] = Math.abs(positionOffset[2]);
 		}
 
-		return getPseudoJavaCode(world,
+		return WRITER.write(world,
 							     facing,
 							     center.get0(),
 							     center.get1(),
@@ -1384,13 +1384,23 @@ public class StructureUtility {
 				);
 	}
 
+	public interface PseudoWriter {
+		String write(World world, ExtendedFacing extendedFacing,
+					 int basePositionX, int basePositionY, int basePositionZ,
+					 int basePositionA, int basePositionB, int basePositionC,
+					 Function<? super TileEntity, String> tileEntityClassifier,
+					 int sizeA, int sizeB, int sizeC, boolean transpose);
+	}
+
+	public static PseudoWriter WRITER = StructureUtility::getPseudoJavaCode;
+
 	/**
 	 * Used only to get pseudo code in structure writer...
 	 *
 	 * NOTE: GT specific code got removed. TODO add a mean
 	 * @param tileEntityClassifier return a string that denote the type of a tile entity, or null if it's nothing special. useful if the tile entity cannot be simply distinguished via getClass.
 	 */
-	public static String getPseudoJavaCode(World world, ExtendedFacing extendedFacing,
+	private static String getPseudoJavaCode(World world, ExtendedFacing extendedFacing,
 										   int basePositionX, int basePositionY, int basePositionZ,
 										   int basePositionA, int basePositionB, int basePositionC,
 										   Function<? super TileEntity, String> tileEntityClassifier,
