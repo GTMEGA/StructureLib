@@ -61,11 +61,18 @@ public class ConstructableUtility {
                         }
                     }
                 } else {
+                    ICallbackable callbackable = null;
+
                     if (tTileEntity instanceof ICallbackable) {
-                        val callbackable = (ICallbackable) tTileEntity;
+                        callbackable = (ICallbackable) tTileEntity;
+                    } else if (tTileEntity instanceof ICallbackableProvider) {
+                        callbackable = ((ICallbackableProvider) tTileEntity).getCallbackable();
+                    }
+
+                    if (callbackable != null) {
                         val callback = new OnElementScanCallback();
 
-                        callbackable.runCallback(aPlayer, aX, aY, aZ, callback);
+                        callbackable.runCallback(aPlayer, aX, aY, aZ, aStack, callback);
 
                         for (val extendedBlockInfo : callback.blocksToPlace) {
                             val position = extendedBlockInfo.position;
@@ -73,7 +80,7 @@ public class ConstructableUtility {
                             for (int i = 0; i < aPlayer.inventory.getSizeInventory(); i++) {
                                 val itemstack = aPlayer.inventory.getStackInSlot(i);
 
-                                if (!(itemstack.getItem() instanceof IBlockInfoProvider)) {
+                                if (itemstack == null || !(itemstack.getItem() instanceof IBlockInfoProvider)) {
                                     continue;
                                 }
 

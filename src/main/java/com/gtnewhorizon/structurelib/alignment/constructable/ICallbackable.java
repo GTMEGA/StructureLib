@@ -7,6 +7,7 @@ import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 
 /**
  * Provides all the information needed to run a structure check with a custom callback
@@ -21,9 +22,10 @@ public interface ICallbackable<T> {
 
     /**
      *
+     * @param itemStack the itemStack the player interacting the controller is holding
      * @return an array of active pieces and the corresponding offset of those pieces
      */
-    Pair<String, Vec3Impl>[] getActivePieces();
+    Pair<String, Vec3Impl>[] getActivePieces(ItemStack itemStack);
 
     /**
      *
@@ -43,13 +45,14 @@ public interface ICallbackable<T> {
      * @param x
      * @param y
      * @param z
+     * @param itemStack
      * @param callback
      */
     @SuppressWarnings("rawtypes")
-    default void runCallback(EntityPlayer player, int x, int y, int z, IStructureDefinition.Callback callback) {
+    default void runCallback(EntityPlayer player, int x, int y, int z, ItemStack itemStack, IStructureDefinition.Callback callback) {
         val structure = this.getStructureDefinition();
 
-        val activePieces = this.getActivePieces();
+        val activePieces = this.getActivePieces(itemStack);
 
         val extendedFacing = this.getExtendedFacing();
 
