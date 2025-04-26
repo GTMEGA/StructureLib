@@ -4,6 +4,7 @@ import com.gtnewhorizon.structurelib.StructureLib;
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.alignment.IAlignment;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
+import com.gtnewhorizon.structurelib.item.BasicBlockInfoProvider;
 import com.gtnewhorizon.structurelib.item.IBlockInfoProvider;
 import com.gtnewhorizon.structurelib.structure.BlockInfo;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
@@ -11,13 +12,19 @@ import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.util.Vec3Impl;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import lombok.var;
+
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ForgeDirection;
+
+import cpw.mods.fml.common.registry.GameRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,34 +81,52 @@ public class ConstructableUtility {
 
                         callbackable.runCallback(aPlayer, aX, aY, aZ, aStack, callback);
 
+                        var placedBlocks = false;
+
                         for (val extendedBlockInfo : callback.blocksToPlace) {
                             val position = extendedBlockInfo.position;
 
                             for (int i = 0; i < aPlayer.inventory.getSizeInventory(); i++) {
                                 val itemstack = aPlayer.inventory.getStackInSlot(i);
 
-                                if (itemstack == null || !(itemstack.getItem() instanceof IBlockInfoProvider)) {
+                                if (itemstack == null) {
                                     continue;
                                 }
 
-                                val blockInfoProvider = ((IBlockInfoProvider) itemstack.getItem());
-                                val blockInfo = blockInfoProvider.getBlockInfo(itemstack);
+                                IBlockInfoProvider blockInfoProvider = null;
 
-                                for (val blockInfoOption : extendedBlockInfo.blockInfo) {
-                                    if (blockInfoOption.equals(blockInfo)) {
-                                        val didPlace = aWorld.setBlock(position.get0(),
-                                                                       position.get1(),
-                                                                       position.get2(),
-                                                                       blockInfoOption.block,
-                                                                       blockInfoOption.meta,
-                                                                       3);
+                                if (itemstack.getItem() instanceof IBlockInfoProvider) {
+                                    blockInfoProvider = ((IBlockInfoProvider) itemstack.getItem());
+                                } else if (itemstack.getItem() != null && ItemBlock.class.equals(itemstack.getItem().getClass())) {
+                                    val itemBlock = (ItemBlock) itemstack.getItem();
+
+                                    blockInfoProvider = new BasicBlockInfoProvider(itemBlock.field_150939_a);
+                                }
+
+                                if (blockInfoProvider == null) {
+                                    continue;
+                                }
+
+                                for (val blockInfo : extendedBlockInfo.blockInfo) {
+                                    val x = position.get0();
+                                    val y = position.get1();
+                                    val z = position.get2();
+
+                                    if (blockInfoProvider.matches(blockInfo) && aWorld.isAirBlock(x, y, z)) {
+                                        val didPlace = aWorld.setBlock(x, y, z, blockInfo.block, blockInfo.meta, 3);
 
                                         if (didPlace) {
                                             aPlayer.inventory.decrStackSize(i, 1);
+
+                                            placedBlocks = true;
                                         }
                                     }
                                 }
                             }
+                        }
+
+                        if (placedBlocks) {
+                            aPlayer.inventoryContainer.detectAndSendChanges();
                         }
                     }
                 }
