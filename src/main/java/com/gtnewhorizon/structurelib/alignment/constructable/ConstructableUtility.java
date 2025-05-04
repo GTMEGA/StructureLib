@@ -4,6 +4,7 @@ import com.gtnewhorizon.structurelib.StructureLib;
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.alignment.IAlignment;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
+import com.gtnewhorizon.structurelib.events.SurvivalConstructionEvent;
 import com.gtnewhorizon.structurelib.item.BasicBlockInfoProvider;
 import com.gtnewhorizon.structurelib.item.IBlockInfoProvider;
 import com.gtnewhorizon.structurelib.structure.BlockInfo;
@@ -21,9 +22,11 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.registry.GameRegistry;
 
 import java.util.ArrayList;
@@ -68,16 +71,19 @@ public class ConstructableUtility {
                         }
                     }
                 } else {
-                    ICallbackable callbackable = null;
+                    ICallbackable<?> callbackable = null;
 
                     if (tTileEntity instanceof ICallbackable) {
-                        callbackable = (ICallbackable) tTileEntity;
+                        callbackable = (ICallbackable<?>) tTileEntity;
                     } else if (tTileEntity instanceof ICallbackableProvider) {
                         callbackable = ((ICallbackableProvider) tTileEntity).getCallbackable();
                     }
 
                     if (callbackable != null) {
                         val callback = new OnElementScanCallback();
+
+                        val startEvent = new SurvivalConstructionEvent.Start(aPlayer, aStack, aWorld, aX, aY, aZ);
+                        MinecraftForge.EVENT_BUS.post(startEvent);
 
                         callbackable.runCallback(aPlayer, aX, aY, aZ, aStack, callback);
 
@@ -128,6 +134,9 @@ public class ConstructableUtility {
                         if (placedBlocks) {
                             aPlayer.inventoryContainer.detectAndSendChanges();
                         }
+
+                        val endEvent = new SurvivalConstructionEvent.End(aPlayer, aStack, aWorld, aX, aY, aZ);
+                        MinecraftForge.EVENT_BUS.post(endEvent);
                     }
                 }
             }
