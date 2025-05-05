@@ -100,8 +100,8 @@ public class ConstructableUtility {
 
                         var placedBlocks = 0;
 
-                        for (int i = 0; i < aPlayer.inventory.getSizeInventory(); i++) {
-                            val itemstack = aPlayer.inventory.getStackInSlot(i);
+                        for (int i = 0; i < aPlayer.inventory.mainInventory.length; i++) {
+                            val itemstack = aPlayer.inventory.mainInventory[i];
 
                             if (itemstack == null) {
                                 continue;
@@ -141,7 +141,7 @@ public class ConstructableUtility {
                                     val y = position.get1();
                                     val z = position.get2();
 
-                                    if (aWorld.isAirBlock(x, y, z)) {
+                                    if (aWorld.isAirBlock(x, y, z) && aPlayer.inventory.mainInventory[i] != null) {
                                         val didPlace = aWorld.setBlock(x, y, z, blockInfo.block, blockInfo.meta, 3);
 
                                         if (didPlace) {
@@ -190,7 +190,19 @@ public class ConstructableUtility {
                     return false;
                 }
             } else {
+                if (!aPlayer.capabilities.isCreativeMode) {
+                    ICallbackable<?> callbackable = null;
 
+                    if (tTileEntity instanceof ICallbackableProvider) {
+                        callbackable = ((ICallbackableProvider) tTileEntity).getCallbackable();
+                    } else if (tTileEntity instanceof ICallbackable<?>) {
+                        callbackable = (ICallbackable<?>) tTileEntity;
+                    }
+
+                    if (callbackable != null) {
+                        aPlayer.swingItem();
+                    }
+                }
             }
         }
         return false;
