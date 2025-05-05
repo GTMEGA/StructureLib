@@ -11,6 +11,9 @@ import com.gtnewhorizon.structurelib.structure.BlockInfo;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.util.Vec3Impl;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.var;
@@ -29,8 +32,14 @@ import net.minecraftforge.common.util.ForgeDirection;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.registry.GameRegistry;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 
 public class ConstructableUtility {
     private static final int LIMIT = 16;
@@ -89,58 +98,63 @@ public class ConstructableUtility {
 
                         callbackable.runCallback(aPlayer, aX, aY, aZ, aStack, callback);
 
-                        var placedBlocks = false;
+                        var placedBlocks = 0;
 
-                        var placed = 0;
+                        for (int i = 0; i < aPlayer.inventory.getSizeInventory(); i++) {
+                            val itemstack = aPlayer.inventory.getStackInSlot(i);
 
-                        for (val extendedBlockInfo : callback.blocksToPlace) {
-                            if (placed >= LIMIT) {
-                                break;
+                            if (itemstack == null) {
+                                continue;
                             }
 
-                            val position = extendedBlockInfo.position;
+                            IBlockInfoProvider blockInfoProvider = null;
 
-                            for (int i = 0; i < aPlayer.inventory.getSizeInventory(); i++) {
-                                val itemstack = aPlayer.inventory.getStackInSlot(i);
+                            if (itemstack.getItem() instanceof IBlockInfoProvider) {
+                                blockInfoProvider = ((IBlockInfoProvider) itemstack.getItem());
+                            } else if (itemstack.getItem() != null && ItemBlock.class.equals(itemstack.getItem().getClass())) {
+                                val itemBlock = (ItemBlock) itemstack.getItem();
 
-                                if (itemstack == null) {
+                                blockInfoProvider = new BasicBlockInfoProvider(itemBlock.field_150939_a);
+                            }
+
+                            if (blockInfoProvider == null) {
+                                continue;
+                            }
+
+                            val blockInfoSet = callback.blocksToPlace.keySet();
+                            for (var iterator = blockInfoSet.iterator(); placedBlocks < LIMIT && iterator.hasNext(); ) {
+                                val blockInfo = iterator.next();
+                                if (!blockInfoProvider.matches(blockInfo)) {
                                     continue;
                                 }
 
-                                IBlockInfoProvider blockInfoProvider = null;
+                                val positions = callback.blocksToPlace.get(blockInfo);
 
-                                if (itemstack.getItem() instanceof IBlockInfoProvider) {
-                                    blockInfoProvider = ((IBlockInfoProvider) itemstack.getItem());
-                                } else if (itemstack.getItem() != null && ItemBlock.class.equals(itemstack.getItem().getClass())) {
-                                    val itemBlock = (ItemBlock) itemstack.getItem();
-
-                                    blockInfoProvider = new BasicBlockInfoProvider(itemBlock.field_150939_a);
-                                }
-
-                                if (blockInfoProvider == null) {
+                                if (positions.isEmpty()) {
                                     continue;
                                 }
 
-                                for (val blockInfo : extendedBlockInfo.blockInfo) {
+                                while (!positions.isEmpty() && placedBlocks < LIMIT) {
+                                    val position = positions.poll();
+
                                     val x = position.get0();
                                     val y = position.get1();
                                     val z = position.get2();
 
-                                    if (blockInfoProvider.matches(blockInfo) && aWorld.isAirBlock(x, y, z)) {
+                                    if (aWorld.isAirBlock(x, y, z)) {
                                         val didPlace = aWorld.setBlock(x, y, z, blockInfo.block, blockInfo.meta, 3);
 
                                         if (didPlace) {
                                             aPlayer.inventory.decrStackSize(i, 1);
 
-                                            placedBlocks = true;
-                                            placed++;
+                                            placedBlocks++;
                                         }
                                     }
                                 }
                             }
                         }
 
-                        if (placedBlocks) {
+                        if (placedBlocks > 0) {
                             aPlayer.inventoryContainer.detectAndSendChanges();
                         }
 
@@ -182,14 +196,16 @@ public class ConstructableUtility {
         return false;
     }
 
+    @SuppressWarnings("rawtypes")
     private static class OnElementScanCallback implements IStructureDefinition.Callback {
-        final List<ExtendedBlockInfo> blocksToPlace;
+        final Map<BlockInfo, Queue<Vec3Impl>> blocksToPlace;
 
         public OnElementScanCallback() {
-            this.blocksToPlace = new ArrayList<>();
+            this.blocksToPlace = new Object2ObjectArrayMap<>();
         }
 
         @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
         public boolean onElementScan(int x, int y, int z,
                                      int a, int b, int c,
                                      World world,
@@ -200,9 +216,14 @@ public class ConstructableUtility {
                 return true;
             }
 
-            val blockInfo = iStructureElement.getBlockInfo(o, world, x, y, z);
+            val blockInfoList = iStructureElement.getBlockInfo(o, world, x, y, z);
 
-            this.blocksToPlace.add(new ExtendedBlockInfo(blockInfo, new Vec3Impl(x, y, z)));
+            val position = new Vec3Impl(x, y, z);
+
+            for (val blockInfo : blockInfoList) {
+                this.blocksToPlace.computeIfAbsent(blockInfo, key -> new ArrayDeque<>())
+                                  .add(position);
+            }
 
             return true;
         }

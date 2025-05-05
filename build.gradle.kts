@@ -32,6 +32,7 @@ repositories {
 }
 
 dependencies {
+    implementation("it.unimi.dsi:fastutil:8.5.13")
     runtimeOnlyNonPublishable("codechicken:notenoughitems-mc1.7.10:2.3.1-mega:dev")
     runtimeOnlyNonPublishable("codechicken:codechickencore-mc1.7.10:1.4.0-mega:dev")
 
