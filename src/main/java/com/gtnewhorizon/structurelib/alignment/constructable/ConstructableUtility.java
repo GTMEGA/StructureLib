@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConstructableUtility {
+    private static final int LIMIT = 16;
+
     private ConstructableUtility() {
 
     }
@@ -89,7 +91,13 @@ public class ConstructableUtility {
 
                         var placedBlocks = false;
 
+                        var placed = 0;
+
                         for (val extendedBlockInfo : callback.blocksToPlace) {
+                            if (placed >= LIMIT) {
+                                break;
+                            }
+
                             val position = extendedBlockInfo.position;
 
                             for (int i = 0; i < aPlayer.inventory.getSizeInventory(); i++) {
@@ -125,6 +133,7 @@ public class ConstructableUtility {
                                             aPlayer.inventory.decrStackSize(i, 1);
 
                                             placedBlocks = true;
+                                            placed++;
                                         }
                                     }
                                 }
