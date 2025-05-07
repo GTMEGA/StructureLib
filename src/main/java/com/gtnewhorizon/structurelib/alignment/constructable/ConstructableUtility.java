@@ -5,20 +5,17 @@ import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.alignment.IAlignment;
 import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.events.SurvivalConstructionEvent;
-import com.gtnewhorizon.structurelib.item.BasicBlockInfoProvider;
+import com.gtnewhorizon.structurelib.item.ItemBlockInfoProvider;
 import com.gtnewhorizon.structurelib.item.IBlockInfoProvider;
 import com.gtnewhorizon.structurelib.structure.BlockInfo;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.util.Vec3Impl;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.var;
 
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemBlock;
@@ -29,17 +26,9 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.registry.GameRegistry;
-
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 
 public class ConstructableUtility {
     private static final int LIMIT = 16;
@@ -112,9 +101,7 @@ public class ConstructableUtility {
                             if (itemstack.getItem() instanceof IBlockInfoProvider) {
                                 blockInfoProvider = ((IBlockInfoProvider) itemstack.getItem());
                             } else if (itemstack.getItem() != null && ItemBlock.class.equals(itemstack.getItem().getClass())) {
-                                val itemBlock = (ItemBlock) itemstack.getItem();
-
-                                blockInfoProvider = new BasicBlockInfoProvider(itemBlock.field_150939_a);
+                                blockInfoProvider = new ItemBlockInfoProvider(itemstack);
                             }
 
                             if (blockInfoProvider == null) {
@@ -123,12 +110,15 @@ public class ConstructableUtility {
 
                             val blockInfoSet = callback.blocksToPlace.keySet();
                             for (var iterator = blockInfoSet.iterator(); placedBlocks < LIMIT && iterator.hasNext(); ) {
-                                val blockInfo = iterator.next();
-                                if (!blockInfoProvider.matches(blockInfo)) {
+                                val blockInfoToCheck = iterator.next();
+                                if (!blockInfoProvider.matches(itemstack, blockInfoToCheck)) {
                                     continue;
                                 }
 
-                                val positions = callback.blocksToPlace.get(blockInfo);
+                                val blockInfoToUse = blockInfoProvider.getBlockInfo(itemstack);
+
+                                // blockInfoToUse might not be *exactly* the same as blockInfoToCheck
+                                val positions = callback.blocksToPlace.get(blockInfoToCheck);
 
                                 if (positions.isEmpty()) {
                                     continue;
@@ -142,7 +132,7 @@ public class ConstructableUtility {
                                     val z = position.get2();
 
                                     if (aWorld.isAirBlock(x, y, z) && aPlayer.inventory.mainInventory[i] != null) {
-                                        val didPlace = aWorld.setBlock(x, y, z, blockInfo.block, blockInfo.meta, 3);
+                                        val didPlace = aWorld.setBlock(x, y, z, blockInfoToUse.block, blockInfoToUse.meta, 3);
 
                                         if (didPlace) {
                                             aPlayer.inventory.decrStackSize(i, 1);

@@ -6,5 +6,7 @@ import net.minecraft.item.ItemStack;
 public interface IBlockInfoProvider {
     BlockInfo getBlockInfo(ItemStack itemStack);
 
-    boolean matches(BlockInfo other);
+    default boolean matches(ItemStack itemStack, BlockInfo other) {
+        return this.getBlockInfo(itemStack).equals(other);
+    }
 }
