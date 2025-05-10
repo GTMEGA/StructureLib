@@ -15,6 +15,8 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.var;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -32,6 +34,7 @@ import java.util.Queue;
 
 public class ConstructableUtility {
     private static final int LIMIT = 16;
+    private static final Log log = LogFactory.getLog(ConstructableUtility.class);
 
     private ConstructableUtility() {
 
@@ -135,6 +138,9 @@ public class ConstructableUtility {
                                         val didPlace = aWorld.setBlock(x, y, z, blockInfoToUse.block, blockInfoToUse.meta, 3);
 
                                         if (didPlace) {
+                                            blockInfoToUse.block.onBlockPlacedBy(aWorld, x, y, z, aPlayer, itemstack);
+                                            blockInfoToUse.block.onPostBlockPlaced(aWorld, x, y, z, blockInfoToUse.meta);
+
                                             aPlayer.inventory.decrStackSize(i, 1);
 
                                             placedBlocks++;
