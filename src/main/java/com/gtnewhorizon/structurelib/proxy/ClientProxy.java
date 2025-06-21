@@ -27,8 +27,12 @@ import static com.gtnewhorizon.structurelib.StructureLib.RANDOM;
 
 public class ClientProxy extends CommonProxy {
     @Override
-    public void hintParticleTinted(World w, int x, int y, int z, IIcon[] icons, short[] RGBa) {
-        EntityFXBlockHint hint = new EntityFXBlockHint(w, x, y, z, icons).withColorTint(RGBa);
+    public void hintParticleTinted(World world, int x, int y, int z, IIcon[] icons, short[] RGBa) {
+        EntityFXBlockHint hint = new EntityFXBlockHint(world, x, y, z, icons).withColorTint(RGBa);
+        followHintParticle(world,hint,x,y,z);
+    }
+
+    public static void followHintParticle(World world, EntityFXBlockHint hint,int x, int y, int z) {
         Minecraft.getMinecraft().effectRenderer.addEffect(hint);
         ensureHinting();
         if (ConfigurationHandler.INSTANCE.isRemoveCollidingHologram()) {
@@ -47,7 +51,7 @@ public class ClientProxy extends CommonProxy {
         }
         currentHints.add(hint);
 
-        EntityFX particle = new WeightlessParticleFX(w, x + RANDOM.nextFloat() * 0.5F, y + RANDOM.nextFloat() * 0.5F, z + RANDOM.nextFloat() * 0.5F, 0, 0, 0);
+        EntityFX particle = new WeightlessParticleFX(world, x + RANDOM.nextFloat() * 0.5F, y + RANDOM.nextFloat() * 0.5F, z + RANDOM.nextFloat() * 0.5F, 0, 0, 0);
         particle.setRBGColorF(0, 0.6F * RANDOM.nextFloat(), 0.8f);
         Minecraft.getMinecraft().effectRenderer.addEffect(particle);
     }
@@ -120,7 +124,7 @@ public class ClientProxy extends CommonProxy {
         currentHints = new LinkedList<>();
     }
 
-    private void ensureHinting() {
+    private static void ensureHinting() {
         if (currentHints == null)
             currentHints = new LinkedList<>();
     }
