@@ -36,7 +36,7 @@ public class EntityFXBlockHint extends EntityFX {
         prevPosY = posY;
         prevPosZ = posZ;
         noClip = true;
-        particleMaxAge = 2000 + StructureLib.RANDOM.nextInt(200);
+        particleMaxAge = 8_000 + StructureLib.RANDOM.nextInt(200);
         this.icons=icons;
     }
 
