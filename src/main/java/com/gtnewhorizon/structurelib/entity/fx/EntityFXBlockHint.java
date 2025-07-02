@@ -14,6 +14,7 @@ import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public class EntityFXBlockHint extends EntityFX {
+    private static final int PARTICLE_ALIVE_TIME = 8_000;
     private IIcon[] icons;
     private short[] mRGBa = {255,255,255,0};
 
@@ -36,7 +37,7 @@ public class EntityFXBlockHint extends EntityFX {
         prevPosY = posY;
         prevPosZ = posZ;
         noClip = true;
-        particleMaxAge = 8_000 + StructureLib.RANDOM.nextInt(200);
+        particleMaxAge = PARTICLE_ALIVE_TIME + StructureLib.RANDOM.nextInt(200);
         this.icons=icons;
     }
 
@@ -47,7 +48,7 @@ public class EntityFXBlockHint extends EntityFX {
         prevPosY = posY;
         prevPosZ = posZ;
         noClip = true;
-        particleMaxAge = 2000 + StructureLib.RANDOM.nextInt(200);
+        particleMaxAge = PARTICLE_ALIVE_TIME + StructureLib.RANDOM.nextInt(200);
         icons = new IIcon[6];
         for (int i = 0; i < 6; i++) {
             icons[i] = block.getIcon(i, meta);
