@@ -204,19 +204,16 @@ public interface IStructureDefinition<T> {
 								return false;
 							}
 						} else {
-							val keepScanning = callBack.onElementScan(xyz[0], xyz[1], xyz[2],
-																	  abc[0], abc[1], abc[2],
-																	  world, object, element, false);
+							//structure was previous already good but here we saw a unloaded chunk don't fail it here
+							callBack.onElementScan(xyz[0], xyz[1], xyz[2],
+												   abc[0], abc[1], abc[2],
+												   world, object, element, false);
 							if (DEBUG_MODE) {
 								StructureLib.LOGGER.info("Multi [{}, {}, {}] !blockExists @ {} {}",
 														 basePositionX, basePositionY, basePositionZ,
 														 Arrays.toString(xyz),
 														 Arrays.toString(abc));
 
-							}
-
-							if (!keepScanning) {
-								return false;
 							}
 						}
 						abc[0] += 1;
