@@ -36,7 +36,9 @@ public class StructureUtility {
 	public static int LAST_NICE_CHARS_POINTER = 0;
 	public static boolean USE_GLOBAL_MAP = false;
 	private static final CarpInterop interop = new CarpInteropImpl();
-	private static final String NICE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz=|!@#$%&()[]{};:<>/?_,.*^'`";
+	private static final String NICE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ0123456789=|!@#$%&()[]{};:<>/?_,.*^'`";
+
+
 	@SuppressWarnings("rawtypes")
 	private static final Map<Vec3Impl, IStructureNavigate> STEP = new HashMap<>();
 	@SuppressWarnings("rawtypes")
