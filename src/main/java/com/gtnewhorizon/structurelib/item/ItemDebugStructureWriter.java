@@ -19,6 +19,8 @@ import net.minecraft.util.IIcon;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.util.List;
 
 import static com.gtnewhorizon.structurelib.StructureLibAPI.MOD_ID;
@@ -136,6 +138,8 @@ public class ItemDebugStructureWriter extends Item {
 
         StructureUtility.USE_GLOBAL_MAP = false;
         StructureLib.LOGGER.info(structureDefinition);
+        StringSelection structureText = new StringSelection(structureDefinition);
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(structureText, null);
     }
 
     @SideOnly(Side.CLIENT)
